@@ -1,0 +1,5 @@
+{:alpine {:image "alpine:3.18"}
+ :python {:image "mypy:1.0.0"}
+ :db {:image "myredis:1.0.0"}
+ :api {:image "myapi:1.0.0"}
+ :balancer {:image "mybalancer:1.0.0"}}

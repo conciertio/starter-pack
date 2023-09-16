@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  db:
+    image: "{{services.db.image|registry}}"
+    container_name: "redis"
+    environment:
+      DB_PASSWORD: {{globals.DB_PASSWORD}}
+    ports:
+      - "{{globals.DB_PORT}}:6379"
+
+

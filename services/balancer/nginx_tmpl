@@ -1,0 +1,22 @@
+
+
+daemon off;
+worker_processes auto;
+pid /run/nginx.pid;
+events {
+    worker_connections  1024;
+}
+http {
+    upstream api {
+        {% for server in servers %}server {{server}}:{{api_port}};
+        {% endfor %}
+    }
+    server {
+        listen {{balancer_port}};
+ 
+        location / {
+            proxy_pass http://api;
+        }
+
+    }
+}

@@ -1,0 +1,5 @@
+{:ssh {:user "concierto" :port 22}
+ :docker {:registry  {:url "0.0.0.0:5000"
+                      :tls-verify false
+                      :user "ritchie"
+                      :secret "ritchie"}}}

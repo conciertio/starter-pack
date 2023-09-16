@@ -1,0 +1,16 @@
+#!/usr/bin/env bb
+
+(require
+ '[babashka.process :refer [exec]]
+ '[clojure.string :as str]
+ '[selmer.parser :as sel])
+
+(let [servers (str/split (System/getenv "HOSTS") #":")
+      api_port (System/getenv "API_PORT")
+      balancer_port (System/getenv "BALANCER_PORT")]
+  (spit "nginx.conf" (sel/render (slurp "nginx_tmpl")
+                                 {:servers servers,
+                                  :api_port api_port,
+                                  :balancer_port balancer_port})))
+
+(exec "/usr/sbin/nginx -c /balancer/nginx.conf -p .")

@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  balancer:
+    container_name: "balancer"
+    restart: always
+    image: "{{services.balancer.image|registry}}"
+    env_file:
+      - balancer.env
+    ports:
+      - "{{globals.BALANCER_PORT}}:9000"
+  

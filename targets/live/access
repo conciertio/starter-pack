@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+registryIP=$(lxc network show lxdbr0 | awk '/ipv4.address/ {gsub(/\/24/,"");print $2}')
+
+cat <<EOF
+{:ssh {:user "concierto" :port 22}
+ :docker {:registry  {:url "$registryIP:5000"
+                      :tls-verify false
+                      :user "ritchie"
+                      :secret "ritchie"}}}
+EOF

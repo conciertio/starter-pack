@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+if [ ! -e bb ]
+then
+    wget -q "https://github.com/babashka/babashka/releases/download/v{{globals.BBVER}}/babashka-{{globals.BBVER}}-linux-amd64-static.tar.gz" -O bb.tar.gz
+    tar xzf bb.tar.gz
+    rm bb.tar.gz
+fi

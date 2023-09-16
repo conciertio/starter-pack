@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+function create-insecure-registry-file {
+    instance=$1
+    registryIP=$(lxc network show lxdbr0 | awk '/ipv4.address/ {gsub(/\/24/,"");print $2}')
+
+
+    insecure_reg_file=$(mktemp)
+
+    echo "
+    unqualified-search-registries = [\"registry.fedoraproject.org\", \"registry.access.redhat.com\", \"docker.io\", \"quay.io\"]
+    [[registry]]
+    location=\"$registryIP:5000\"
+    insecure=true" >$insecure_reg_file
+    lxc file push --create-dirs $insecure_reg_file $instance/home/concierto/.config/containers/registries.conf
+}
+
+function create-base-image {
+
+    lxc image delete concierto
+
+    lxc launch images:alpine/3.18/cloud concierto-base \
+        --config=cloud-init.user-data="$(cat $SCRIPT_DIR/cloud-init-podman.yml)"
+
+    create-insecure-registry-file concierto-base
+
+    lxc stop concierto-base
+    lxc publish concierto-base --alias concierto
+    lxc delete concierto-base
+}
+
+
+function setmeta {
+    inst=$1
+    prop=$2
+    val=$3
+
+    lxc config set $inst user.concierto.$prop $val
+}
+
+function user-tweaks {
+    image=$1
+    lxc exec $image -- sh -c "usermod -p '*' concierto"
+    # allow podman to run rootless ...
+    lxc exec $image -- sh -c "touch /etc/subuid /etc/subgid"
+    lxc exec $image -- sh -c "usermod --add-subuids 10000-75535 concierto"
+    lxc exec $image -- sh -c "usermod --add-subgids 10000-75535 concierto"  
+}
+
+function launch {
+    name=$1
+    lxc launch concierto $name \
+        --config security.privileged=true \
+        --config security.nesting=true
+
+#    if [ "$(awk -F= '/^ID=/ {print $2}' /etc/os-release)" = "fedora" ]
+#    then
+        user-tweaks $name
+#    fi
+}
+
+function launch-with-meta {
+    name=$1
+    role=$2
+    cluster=$3
+
+    launch $name
+
+    setmeta $name role $role
+    setmeta $name cluster $cluster
+}
+
+function cluster-create {
+
+    cluster=$1
+
+    echo "Creating cluster $cluster"
+
+    launch-with-meta $cluster-db db $cluster
+
+    for m in $(seq 1 3)
+    do
+        launch-with-meta $cluster-api$m api $cluster
+    done
+
+    launch-with-meta $cluster-bal balancer $cluster
+
+}
+
+function clean-all {
+    for m in $(lxc ls -c n -f csv)
+    do
+        lxc delete $m --force
+    done   
+}
+
+function clean-one {
+    for m in $(lxc ls -c n -f csv)
+    do
+        if [ "$(lxc config get $m user.concierto.cluster)" = "$1" ]
+        then
+            echo "Removing $m"
+            lxc delete $m --force
+        fi
+    done
+}
+
+case $1 in 
+    create-base)
+        create-base-image
+        ;;
+    create)
+        cluster-create $2
+        ;;
+    clean-all)
+        clean-all
+        ;;
+    clean-one)
+        clean-one $2
+        ;;
+    *)
+        echo $SCRIPT_DIR
+        echo "don't know that"
+        ;;
+esac

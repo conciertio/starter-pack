@@ -1,0 +1,6 @@
+
+The balancer shows pre_build downloading bb for it's use in the run script.
+
+Note, at first glance it's easy to think nginx_tmpl can be templated with all api machines during build, but it has to be done per cluster, and that information isn't available during build.
+
+So, HOSTS env var is created per cluster during deploy and the run script splits that and generates the nginx.conf as the container instantiates.

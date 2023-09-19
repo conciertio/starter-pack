@@ -1,7 +1,6 @@
 (ns extensions.demo.lxd.extend
   (:require [babashka.curl :as curl]
             [cheshire.core :as json]
-            [babashka.process :refer [shell]]
             [concierto.core :as core]
             [medley.core :as m]))
 
@@ -65,28 +64,23 @@
 
    (map #(dissoc %1 :name))))
 
-(defn- create-cluster [args]
-  (let [cluster-name (core/get-option args :cluster)
-        cur-path (core/path (core/app-dir) "extensions" "demo" "lxd")
-        setup (core/path cur-path "setup")]
+(defn- setup-script []
+  (let [cur-path (core/path (core/app-dir) "extensions" "demo" "lxd")]
+    (core/path cur-path "setup")))
 
+(defn- create-cluster [args]
+  (let [cluster-name (core/get-option args :cluster)]
     (println "Creating cluster" cluster-name)
-    (shell setup "create" cluster-name)))
+    (core/cshell (str (setup-script) " create " cluster-name))))
 
 (defn- create-base-image [_args]
-  (let [cur-path (core/path (core/app-dir) "extensions" "demo" "lxd")
-        setup (core/path cur-path "setup")]
-    (shell setup "create-base")))
+  (core/cshell (str (setup-script) " create-base")))
 
 (defn- clean-all [_args]
-  (let [cur-path (core/path (core/app-dir) "extensions" "demo" "lxd")
-        setup (core/path cur-path "setup")]
-    (shell setup "clean-all")))
+  (core/cshell (str (setup-script) " clean-all")))
 
 (defn- clean-one [args]
-  (let [cur-path (core/path (core/app-dir) "extensions" "demo" "lxd")
-        setup (core/path cur-path "setup")]
-    (shell setup "clean-one" (first (:args args)))))
+  (core/cshell (str (setup-script) " clean-one" (first (:args args)))))
 
 
 (defn dispatch-table []

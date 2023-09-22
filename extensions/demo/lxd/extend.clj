@@ -93,7 +93,7 @@
     :help "create a new cluster"}
 
    {:cmds ["demo" "lxd" "cluster-remove"] :fn clean-one
-    :help "remove all cluster instances"}
+    :help "remove cluster instance"}
 
    {:cmds ["demo" "lxd" "cluster-remove-all"] :fn clean-all
     :help "remove all cluster instances"}])

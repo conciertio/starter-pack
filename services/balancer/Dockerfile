@@ -1,4 +1,4 @@
-FROM {{services.alpine.image|registry}}
+FROM {{services.alpine.image}}
 
 RUN apk add nginx
 ADD bb /usr/bin/bb

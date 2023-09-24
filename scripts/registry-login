@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-podman login 10.174.25.1:5000 -u {{globals.docker.registry.user}} -p {{globals.docker.registry.secret}}
+podman login 10.174.25.1:5000 -u {{access.docker.registry.user}} -p {{access.docker.registry.secret}}
 
